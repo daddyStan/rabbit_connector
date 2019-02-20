@@ -1,0 +1,21 @@
+{
+    "name": "Rabbit Connector",
+    "description": "Layer for flexible work",
+    "license": "GNU General Public License v3.0",
+    "authors": [
+        {
+            "name": "Stanislav Koshpaev",
+            "email": "info@koshpaev.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "phpunit/phpunit": "^5.7",
+        "php-amqplib/php-amqplib": ">=2.6.1"
+    },
+    "autoload": {
+        "psr-4":{
+            "Component\\":"Component"
+        }
+    }
+}
