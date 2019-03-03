@@ -3,10 +3,15 @@ declare(strict_types=1);
 
 namespace Component\Interfaces;
 
+/**
+ * Interface RabbitHelperInterface
+ * @package Component\Interfaces
+ */
 interface RabbitHelperInterface
 {
-    public function send($message): bool;
+    public function send(string $message): bool;
     public function bind($queue, $exchange, $route): void;
     public function connectToRoute(string $route = null);
-    public function connectToQueue();
+    public function connectToQueue(): bool;
+    public function receive(): bool;
 }

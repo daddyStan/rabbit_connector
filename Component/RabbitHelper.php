@@ -4,27 +4,34 @@ declare(strict_types=1);
 namespace Component;
 
 use Component\Interfaces\RabbitHelperInterface;
+use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
 class RabbitHelper implements RabbitHelperInterface
 {
+    /** @var Configaration */
     private $configuration;
 
+    /** @var AMQPStreamConnection */
     private $connection;
 
+    /** @var AMQPChannel */
     private $channel;
 
+    /** @var string */
     private $exchange;
 
+    /** @var string */
     private $queue;
 
+    /** @var string */
     private $route;
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getRoute()
+    public function getRoute(): string
     {
         return $this->route;
     }
@@ -33,112 +40,117 @@ class RabbitHelper implements RabbitHelperInterface
      * @param mixed $route
      * @return self
      */
-    public function setRoute($route): self
+    public function setRoute(string $route): self
     {
         $this->route = $route;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getQueue()
+    public function getQueue(): string
     {
         return $this->queue;
     }
 
     /**
-     * @param mixed $queue
+     * @param string $queue
      * @return self
      */
-    public function setQueue($queue): self
+    public function setQueue(string $queue): self
     {
         $this->queue = $queue;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getExchange()
+    public function getExchange(): string
     {
         return $this->exchange;
     }
 
     /**
-     * @param mixed $exchange
+     * @param string $exchange
      * @return self
      */
-    public function setExchange($exchange): self
+    public function setExchange(string $exchange): self
     {
         $this->exchange = $exchange;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return AMQPChannel
      */
-    public function getChannel()
+    public function getChannel(): AMQPChannel
     {
         return $this->channel;
     }
 
     /**
-     * @param mixed $channel
+     * @param AMQPChannel $channel
      * @return self
      */
-    public function setChannel($channel): self
+    public function setChannel(AMQPChannel $channel): self
     {
         $this->channel = $channel;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return AMQPStreamConnection
      */
-    public function getConnection()
+    public function getConnection(): AMQPStreamConnection
     {
         return $this->connection;
     }
 
     /**
-     * @param mixed $connection
+     * @param AMQPStreamConnection $connection
      * @return self
      */
-    public function setConnection($connection): self
+    public function setConnection(AMQPStreamConnection $connection): self
     {
         $this->connection = $connection;
         return $this;
     }
 
     /**
-     * @return mixed
+     * @return Configaration
      */
-    public function getConfiguration()
+    public function getConfiguration(): Configaration
     {
         return $this->configuration;
     }
 
     /**
-     * @param mixed $configuration
+     * @param Configaration $configuration
      * @return self
      */
-    public function setConfiguration($configuration): self
+    public function setConfiguration(Configaration $configuration): self
     {
         $this->configuration = $configuration;
         return $this;
     }
 
+    /**
+     * RabbitHelper constructor.
+     * Подтягиваем необходимые зависимости
+     */
     public function __construct()
     {
         $this->setConfiguration(new Configaration());
     }
 
     /**
+     * Отправляем сообщение
      * @param $message
      * @return bool
      */
-    public function send($message): bool
+    public function send(string $message): bool
     {
         $msg = new AMQPMessage($message);
 
@@ -204,37 +216,14 @@ class RabbitHelper implements RabbitHelperInterface
         $this->getChannel()->queue_bind($queue, $exchange, $route);
     }
 
-    /**
-     * @return bool
-     */
     public function connectToQueue(): bool
     {
-
-        $this->setConfiguration([
-            'host'      => $this->getContainer()->getParameter($this->getPrefix() . 'host'),
-            'port'      => $this->getContainer()->getParameter($this->getPrefix() . 'port'),
-            'vhost'     => $this->getContainer()->getParameter($this->getPrefix() . 'vhost'),
-            'user'      => $this->getContainer()->getParameter($this->getPrefix() . 'user'),
-            'password'  => $this->getContainer()->getParameter($this->getPrefix() . 'password')
-        ]);
-
-        try {
-            $this->setConnection(new AMQPStreamConnection(
-                    $this->getConfig()['host'],
-                    $this->getConfig()['port'],
-                    $this->getConfig()['user'],
-                    $this->getConfig()['password'],
-                    $this->getConfig()['vhost']
-                )
-            );
-
-            $this->setChannel($this->getConnection()->channel());
-            $this->setExchange( $this->getEnv() . $this->getContainer()->getParameter($this->getType())['exchange'] );
-            $this->setQueue( $this->getEnv() . $this->getContainer()->getParameter($this->getType())['queue'] );
-
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
+        // TODO: Implement connectToQueue() method.
     }
+
+    public function receive(): bool
+    {
+        // TODO: Implement receive() method.
+    }
+
 }

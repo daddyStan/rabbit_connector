@@ -2,6 +2,9 @@
 
 namespace Component;
 
+/*
+ *  По сути, хранение конфигурации подключения можно реализовать как угодно. Здесь лишь краткий пример.
+ */
 class Configaration
 {
     public static $parameters = [
@@ -11,5 +14,4 @@ class Configaration
         'password' => 'admin',
         'vhost'    => '/'
     ];
-
 }
