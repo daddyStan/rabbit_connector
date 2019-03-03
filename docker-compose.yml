@@ -6,7 +6,7 @@ services:
     volumes:
       - './:/var/www'
     networks:
-    - interior
+      - interior
 
   rabbit1:
     image: "rabbitmq:3-management"
@@ -16,12 +16,12 @@ services:
       RABBITMQ_DEFAULT_PASS: "admin"
       RABBITMQ_DEFAULT_VHOST: "/"
     ports:
-    - "15672:15672"
-    - "5672:5672"
+      - "15672:15672"
+      - "5672:5672"
     labels:
       NAME: "rabbitmq1"
     networks:
-    - interior
+      - interior
 
 networks:
   interior:
