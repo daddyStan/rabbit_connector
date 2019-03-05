@@ -5,6 +5,7 @@ namespace Component;
 
 use Component\Interfaces\RabbitHelperInterface;
 use Dispatcher\Dispatcher;
+use Dispatcher\Interfaces\DispatcherInterface;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -28,6 +29,27 @@ class RabbitHelper implements RabbitHelperInterface
 
     /** @var string */
     private $route;
+
+    /** @var Dispatcher */
+    private $dispatcher;
+
+    /**
+     * @return Dispatcher
+     */
+    public function getDispatcher(): DispatcherInterface
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * @param DispatcherInterface $dispatcher
+     * @return self
+     */
+    public function setDispatcher(DispatcherInterface $dispatcher): self
+    {
+        $this->dispatcher = $dispatcher;
+        return $this;
+    }
 
     /**
      * @return string
@@ -147,28 +169,6 @@ class RabbitHelper implements RabbitHelperInterface
     }
 
     /**
-     * Отправляем сообщение
-     * @param $message
-     * @return bool
-     */
-    public function send(string $message): bool
-    {
-        $msg = new AMQPMessage($message);
-
-        try {
-            $this->getChannel()->basic_publish(
-                $msg,
-                $this->getExchange(),
-                $this->getRoute()
-                );
-
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
-    /**
      * Коннект для продюсера, конектимся к точке обмена, шлём сообщения по ключу маршрута
      * @param string $route
      * @return bool
@@ -204,10 +204,15 @@ class RabbitHelper implements RabbitHelperInterface
         }
     }
 
-
+    /**
+     * Коннект для работы с очередью
+     * @param string $queue
+     * @return bool
+     */
     public function connectToQueue(string $queue): bool
     {
         $config = Configaration::$parameters;
+        $this->setDispatcher( new Dispatcher() );
 
         try {
             $this->setConnection(new AMQPStreamConnection(
@@ -229,20 +234,6 @@ class RabbitHelper implements RabbitHelperInterface
         }
     }
 
-    public function receive(): void
-    {
-        $callback = function ($msg) {
-            echo ' [x] Received ', $msg->body, "\n";
-        };
-
-        $this->getChannel()->basic_qos(null, 1, null);
-        $this->getChannel()->basic_consume($this->getQueue(), '', false, false, false, false, $callback);
-
-        while (count($this->getChannel()->callbacks)) {
-            $this->getChannel()->wait();
-        }
-    }
-
     /**
      * Связываем цепочку Точка Обмена -> Роут -> Очередь
      * @param $queue
@@ -254,5 +245,44 @@ class RabbitHelper implements RabbitHelperInterface
         $this->getChannel()->exchange_declare($exchange, 'direct',false, true, false);
         $this->getChannel()->queue_declare($queue, false, true, false, false);
         $this->getChannel()->queue_bind($queue, $exchange, $route);
+    }
+
+    /**
+     * Отправляем сообщение
+     * @param $message
+     * @return bool
+     */
+    public function send(string $message): bool
+    {
+        $msg = new AMQPMessage($message);
+
+        try {
+            $this->getChannel()->basic_publish(
+                $msg,
+                $this->getExchange(),
+                $this->getRoute()
+            );
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Получаем сообщение и обрабатываем его в диспетчере
+     * @throws \ErrorException
+     */
+    public function receive(): void
+    {
+        $dispatcher = $this->getDispatcher();
+
+        $this->getChannel()->basic_qos(null, 1, null);
+        $this->getChannel()->basic_consume($this->getQueue(), '', false, false, false, false, function (AMQPMessage $msg) use ($dispatcher) {
+            $dispatcher->dispatch($msg->getBody());
+            $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
+        });
+
+        $this->getChannel()->wait();
     }
 }

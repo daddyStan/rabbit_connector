@@ -15,10 +15,16 @@ class RabbitHelperTest extends TestCase
         $this->rabbitHelper = new RabbitHelper();
     }
 
+    public function testBind()
+    {
+        $this->rabbitHelper->connectToRoute('test');
+        $this->rabbitHelper->bind('test', 'test', 'test');
+    }
+
     /**
      * Тестируем подключение
      */
-    public function testConnectToRoute(string $route = null): void
+    public function testConnectToRoute(): void
     {
         $this->assertTrue($this->rabbitHelper->connectToRoute('test'));
     }
@@ -29,17 +35,22 @@ class RabbitHelperTest extends TestCase
     public function testSend(): void
     {
         $this->assertTrue($this->rabbitHelper->connectToRoute('test'));
-        $this->assertTrue($this->rabbitHelper->send('test to test'));
+        $this->assertTrue($this->rabbitHelper->send('test for test'));
     }
 
+    /**
+     * Тестируем подключение к очереди
+     */
     public function testConnectToQueue(): void
     {
-        $this->rabbitHelper->connectToQueue();
+        $this->rabbitHelper->connectToQueue('test');
     }
 
+    /** Тестируем получение сообщений */
     public function testReceive(): void
     {
-        $this->rabbitHelper->connectToQueue();
+        $this->rabbitHelper->connectToQueue('test');
         $this->rabbitHelper->receive();
+        $this->assertSame('test for test', $this->rabbitHelper->getDispatcher()->tempArray[0]);
     }
 }
