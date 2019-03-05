@@ -46,7 +46,10 @@ class RabbitHelperTest extends TestCase
         $this->rabbitHelper->connectToQueue('test');
     }
 
-    /** Тестируем получение сообщений */
+    /**
+     * Тестируем получение сообщений
+     * @expectedException
+     */
     public function testReceive(): void
     {
         $this->rabbitHelper->connectToQueue('test');
