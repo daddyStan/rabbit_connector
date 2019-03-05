@@ -31,4 +31,15 @@ class RabbitHelperTest extends TestCase
         $this->assertTrue($this->rabbitHelper->connectToRoute('test'));
         $this->assertTrue($this->rabbitHelper->send('test to test'));
     }
+
+    public function testConnectToQueue(): void
+    {
+        $this->rabbitHelper->connectToQueue();
+    }
+
+    public function testReceive(): void
+    {
+        $this->rabbitHelper->connectToQueue();
+        $this->rabbitHelper->receive();
+    }
 }

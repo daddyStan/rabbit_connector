@@ -16,7 +16,8 @@
     "autoload": {
         "psr-4":{
             "Component\\":"Component",
-            "Tests\\":"Tests"
+            "Tests\\":"Tests",
+            "Dispatcher\\":"Dispatcher"
         }
     }
 }

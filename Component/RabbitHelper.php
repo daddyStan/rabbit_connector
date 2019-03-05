@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Component;
 
 use Component\Interfaces\RabbitHelperInterface;
+use Dispatcher\Dispatcher;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -203,6 +204,45 @@ class RabbitHelper implements RabbitHelperInterface
         }
     }
 
+
+    public function connectToQueue(string $queue): bool
+    {
+        $config = Configaration::$parameters;
+
+        try {
+            $this->setConnection(new AMQPStreamConnection(
+                    $config['host'],
+                    $config['port'],
+                    $config['user'],
+                    $config['password'],
+                    $config['vhost']
+                )
+            );
+
+            $this->setChannel($this->getConnection()->channel());
+            $this->setExchange( 'test' );
+            $this->setQueue( $queue );
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    public function receive(): void
+    {
+        $callback = function ($msg) {
+            echo ' [x] Received ', $msg->body, "\n";
+        };
+
+        $this->getChannel()->basic_qos(null, 1, null);
+        $this->getChannel()->basic_consume($this->getQueue(), '', false, false, false, false, $callback);
+
+        while (count($this->getChannel()->callbacks)) {
+            $this->getChannel()->wait();
+        }
+    }
+
     /**
      * Связываем цепочку Точка Обмена -> Роут -> Очередь
      * @param $queue
@@ -215,15 +255,4 @@ class RabbitHelper implements RabbitHelperInterface
         $this->getChannel()->queue_declare($queue, false, true, false, false);
         $this->getChannel()->queue_bind($queue, $exchange, $route);
     }
-
-    public function connectToQueue(): bool
-    {
-        // TODO: Implement connectToQueue() method.
-    }
-
-    public function receive(): bool
-    {
-        // TODO: Implement receive() method.
-    }
-
 }
